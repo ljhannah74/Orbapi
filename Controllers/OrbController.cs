@@ -1,6 +1,8 @@
+using System.Net;
 using Microsoft.AspNetCore.Mvc;
 using orbapi.DAL;
 using orbapi.DTOs;
+using orbapi.Models;
 
 namespace orbapi.Controllers
 {
@@ -18,10 +20,13 @@ namespace orbapi.Controllers
         /// Retrieves the complete list of states in the system.
         /// </summary>
         /// <returns></returns>
-        public async Task<ActionResult<List<StateDTO>>> GetStates()
+        public async Task<ApiResponse<List<StateDTO>>> GetStates()
         {
+            ApiResponse<List<StateDTO>> response = ApiResponseUtil<List<StateDTO>>.GetApiResponse(HttpStatusCode.OK);
             List<StateDTO> stateData = await Task.Run(() => OrbIndexDAL.GetStates()); 
-            return Ok(stateData);
+            response.data = stateData;
+      
+            return response;
         }
 
         /// <summary>
@@ -32,38 +37,47 @@ namespace orbapi.Controllers
         /// <param name="stateName">The selected state</param>
         /// <returns></returns>
         [HttpGet("{stateName}")]
-        public async Task<ActionResult<List<CountyDTO>>> GetCountiesByState(string stateName) 
+        public async Task<ApiResponse<List<CountyDTO>>> GetCountiesByState(string stateName) 
         {
+            ApiResponse<List<CountyDTO>> response = ApiResponseUtil<List<CountyDTO>>.GetApiResponse(HttpStatusCode.OK);
             List<CountyDTO> countyData = await Task.Run(() => OrbIndexDAL.GetCountiesByState(stateName));
             
-            if(countyData.Count == 0)
-                return NotFound();
+            if(countyData.Count == 0) 
+                response = ApiResponseUtil<List<CountyDTO>>.GetApiResponse(HttpStatusCode.NotFound);
+            else
+                response.data = countyData;
 
-            return Ok(countyData);
+            return response;
         }
 
         // GET api/orb/PA/ALLEGHENY
         [HttpGet("{stateName}/{countyName}")]
-        public async Task<ActionResult<List<OrbIndexDTO>>> GetOrbIndexes(string stateName, string countyName)
+        public async Task<ApiResponse<List<OrbIndexDTO>>> GetOrbIndexes(string stateName, string countyName)
         {
+            ApiResponse<List<OrbIndexDTO>> response = ApiResponseUtil<List<OrbIndexDTO>>.GetApiResponse(HttpStatusCode.OK);
             List<OrbIndexDTO> orbIndexes = await Task.Run(() => OrbIndexDAL.GetOrbIndexes(stateName, countyName));
 
-            if(orbIndexes.Count == 0)
-                return NotFound();
-
-            return Ok(orbIndexes);
+            if(orbIndexes.Count == 0) 
+                response = ApiResponseUtil<List<OrbIndexDTO>>.GetApiResponse(HttpStatusCode.NotFound);
+            else
+                response.data = orbIndexes;
+            
+            return response;
         }
 
         // Get api/orb/PA/WASHINGTON/localities
         [HttpGet("{stateName}/{countyName}/localities")]
-        public async Task<ActionResult<List<LocalityDTO>>> GetLocalities(string stateName, string countyName)
+        public async Task<ApiResponse<List<LocalityDTO>>> GetLocalities(string stateName, string countyName)
         {
+            ApiResponse<List<LocalityDTO>> response = ApiResponseUtil<List<LocalityDTO>>.GetApiResponse(HttpStatusCode.OK);
             List<LocalityDTO> localitiesList = await Task.Run(() => OrbIndexDAL.GetLocalities(stateName, countyName));
             
             if(localitiesList.Count == 0)
-                return NotFound();
+                response = ApiResponseUtil<List<LocalityDTO>>.GetApiResponse(HttpStatusCode.OK);
+            else
+                response.data = localitiesList;
 
-            return Ok(localitiesList);
+            return response;
         }
     }
 }
